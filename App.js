@@ -1,21 +1,79 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from "react"
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Platform
+} from "react-native"
+import globalStyles from "./assets/styles/global"
+import uuid from "react-native-uuid"
 
-export default function App() {
+import { Header, Todo } from "./components"
+
+const App = () => {
+  const [todos, setTodos] = useState([])
+
+  function addTodos(task) {
+    const newTodo = { id: uuid.v4(), task, completed: false }
+    setTodos([...todos, newTodo])
+  }
+
+  function toggleCompleted(id) {
+    const newTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        todo.completed = !todo.completed
+      }
+
+      return todo
+    })
+
+    setTodos(newTodos)
+  }
+
+  function removeTodo(id) {
+    const newTodos = todos.filter((todo) => todo.id !== id)
+    setTodos(newTodos)
+  }
+
+  const renderTodos = ({ item }) => (
+    <Todo
+      todo={item}
+      toggleCompleted={toggleCompleted}
+      removeTodo={removeTodo}
+    />
+  ) // For FlatList todos mapping
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <SafeAreaView
+      style={{
+        paddingHorizontal: 10,
+        paddingTop: Platform.OS === "ios" ? 0 : 50
+      }}
+    >
+      <Header addTodos={addTodos} />
+      <View style={styles.todoListSection}>
+        {todos.length ? (
+          <FlatList
+            data={todos}
+            renderItem={renderTodos}
+            keyExtractor={(todo) => todo.id}
+          />
+        ) : (
+          <Text style={globalStyles.h2}>No Todos</Text>
+        )}
+      </View>
+    </SafeAreaView>
+  )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  todoListSection: {
+    marginTop: 30,
+    marginBottom: 60,
+    padding: 5
+  }
+})
+
+export default App
